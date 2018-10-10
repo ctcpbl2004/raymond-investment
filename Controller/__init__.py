@@ -23,6 +23,33 @@ class CreateData(object):
         data = API_Connector.Get_Data(Ticker)
         
         DB_Connector.InsertData.Macro(Ticker,data)
+    
+    @staticmethod
+    def Create_Data_From_Yahoo_Finance(Ticker):
+        data = API_Connector.Get_Yahoo_Finance_data(Ticker)
+        data = data.rename(columns = {'Adj Close':'AdjClose'})
+        data.index = data.index.strftime('%Y-%m-%d')
+        
+        data['Dividends'] = ''
+        data['LastUpdated'] = ''
+        return data
+    
+    
+    @staticmethod
+    def Create_From_Yahoo_Finance(Tickers):
+        for Ticker in Tickers:
+            try:
+                data = CreateData.Create_Data_From_Yahoo_Finance(Ticker)              
+                DB_Connector.InsertData.Equity(Ticker,data)
+                time.sleep(2)
+            except:
+                sys.stderr.write("[Error] Connection error in " + str(Ticker) + '. \n')
+                
+                
+                
+                
+                
+                
 
 class Create_AllData(object):
     @staticmethod
@@ -87,9 +114,26 @@ class UpdateData(object):
 
 
 def Summarize_Data():
+    DB_Connector.DeleteData.SummaryData()
     DB_Connector.SummaryData.Equity()
     DB_Connector.SummaryData.Futures()
     DB_Connector.SummaryData.Macro()
+
+
+def Get_ETFlist():
+    path = 'ETF_list.xlsx'
+
+    data = pd.read_excel(path)
+    return data['Ticker'].tolist()
+
+def Get_Equitylist():
+    path = 'SPY_list.xlsx'
+
+    data = pd.read_excel(path)
+    return data['Ticker'].dropna().tolist()
+
+
+
 
 
 

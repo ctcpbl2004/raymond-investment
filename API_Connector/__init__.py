@@ -1,5 +1,7 @@
 import quandl
 import pandas as pd
+import sys
+import fix_yahoo_finance as yf
 
 _QuandlAPI_token = 'fk-V2wGNzxxAiNnekenK'
 quandl.ApiConfig.api_key = _QuandlAPI_token
@@ -12,19 +14,20 @@ def Get_Data(Quandl_Code,Start = None,End = None):
     elif End == None:
         data = quandl.get(Quandl_Code,start_date = Start)
     else:
-        print("ERROR!!")
+        sys.stderr.write("ERROR!!")
     
     return data
 
-def Metadata_Wiki():
-    metadata = pd.read_csv('https://www.quandl.com/api/v3/databases/CHRIS/metadata?api_key=fk-V2wGNzxxAiNnekenK')
-
-
-
-
-
-
-
+def Get_Yahoo_Finance_data(Ticker, Start = None):
+    
+    if Start == None:
+        Start = '1980-01-01'
+    
+    data = yf.download(Ticker,start = Start, progress = False)
+    return data
+    
+    
+    
 
 
 

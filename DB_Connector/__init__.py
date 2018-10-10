@@ -198,8 +198,9 @@ class InsertData(object):
             Volume = df['Volume'][i]
             Dividends = df['Dividends'][i]
             AdjClose = df['AdjClose'][i]
-            
-            cursor.execute("INSERT OR REPLACE INTO Equity VALUES (?,?,?,?,?,?,?,?,?)",(Ticker,Date, Open, High, Low, Close, Volume, Dividends, AdjClose))        
+            LastUpdated = df['LastUpdated'][i]
+
+            cursor.execute("INSERT OR REPLACE INTO Equity VALUES (?,?,?,?,?,?,?,?,?,?)",(Ticker,Date, float(Open), float(High), float(Low), float(Close), int(Volume), str(Dividends), float(AdjClose), str(LastUpdated)))        
 
         sys.stderr.write("[info] wrote %s rows to db. \n" % (len(df)))
         
@@ -282,6 +283,16 @@ class DeleteData(object):
         cursor = connection.cursor()
         
         cursor.execute("DELETE FROM Macro WHERE Ticker = ?",(Ticker,))
+        
+        connection.commit()
+        connection.close()
+        
+    @staticmethod
+    def SummaryData():
+        connection = sqlite3.connect(_db_path)
+        cursor = connection.cursor()
+        
+        cursor.execute("DELETE FROM Summary_table")
         
         connection.commit()
         connection.close()
