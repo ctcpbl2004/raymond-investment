@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlite3
 import sys
+import datetime
 
 _db_path = 'Database\Database.db'
 
@@ -58,6 +59,29 @@ class GetData(object):
         df.sort_index()
         
         return df
+
+    @staticmethod
+    def Multi_Equity(Tickers, Start = None, End = None):
+        
+        if (Start == None) & (End == None):
+            Start = '1980-01-01'
+            End = datetime.datetime.today().strftime('%Y-%m-%d')
+            
+        elif End == None:
+            End = datetime.datetime.today().strftime('%Y-%m-%d')
+            
+        elif Start == None:
+            Start = '1980-01-01'
+            
+        else:
+            raise Exception("Error in datetime parameters.")
+            
+        df = pd.DataFrame(columns = Tickers, index = pd.date_range(start = Start, end = End, freq = 'D'))
+        
+        for Ticker in Tickers:
+            df[Ticker] = GetData.Equity(Ticker, Start, End)['AdjClose']
+        
+        return df.dropna(how = 'all')
 
     @staticmethod
     def Futures(Ticker, Start=None, End = None):

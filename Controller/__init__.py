@@ -93,6 +93,12 @@ class UpdateData(object):
             
             DB_Connector.InsertData.Equity(Ticker,data)
         
+    def Update_Equity_YF(self):
+        Equity_list = self.Summary_table[self.Summary_table['Category'] == 'Equity']['Ticker'].tolist()
+        
+        CreateData.Create_From_Yahoo_Finance(Equity_list)
+        
+        
     def Update_FuturesData(self):
         Futures_list = self.Summary_table[self.Summary_table['Category'] == 'Futures']['Ticker'].tolist()
         
