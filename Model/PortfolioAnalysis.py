@@ -86,38 +86,57 @@ class Relative_CumulativeReturn(object):
         return self.return_df
 
 
-class Backtest_Asset_Allocation(object):
+class Backtest(object):
     
-    def __init__(self, Tickers, Weight = None, Rebalance_period = None):
+    def __init__(self, holdings_dict, Rebalance_period, Start):
         
-        NumberOfComponent = len(Tickers)
-        '''
-        if Weight == 'Equal':
-            Weight_list = self._generate_list(NumberOfComponent,1./NumberOfComponent)
+        self.data = DB_Connector.GetData.Multi_Equity(holdings_dict.keys(), Start)
+        self.Rebalance_freq = Rebalance_period
+        self.holdings_dict = holdings_dict
+        
+        if sum(self.holdings_dict.values()) != 1.:
+            sys.stderr.write("Error in portfolio's weight. \n")
+            return None
             
-        elif (type(Weight) == list) and (len(Weight) == len(Tickers)) and (sum(Weight) == 1.):
-            Weight_list = Weight
-        else:
-            sys.stderr.write('[Error] Wrong input in "Weight" parameter. \n')
-        
-        if Rabalance_period in ('Buy&Hold','Daily','Monthly','Quarterly','Annual'):
-            pass
-        else:
-            sys.stderr.write('[Error] Wrong input in "Rebalance_perild". \n')
-        '''
         
         
         
+    def Result(self):
+            
+        Return_data = self.data.pct_change()
         
+        Initial_Amount = 1000000
         
+        Shares_data = (Initial_Amount/self.data).resample(self.Rebalance_freq).last()
+        Shares_data = Shares_data.append(Initial_Amount/self.data.iloc[0]).sort_index()
         
+        for each in self.holdings_dict:
+            
+            Shares_data[each] = Shares_data[each] * self.holdings_dict[each]
         
+        Shares_data = Shares_data.resample('D').last().fillna(method='ffill')
         
+        Amount_data = (Shares_data * self.data).dropna()
         
+        Amount_data['Sum'] = Amount_data.sum(axis=1)
         
-        self.data = DB_Connector.GetData.Multi_Equity(Tickers)
+        Weight_data = pd.DataFrame(columns = self.holdings_dict.keys())
         
+        for each in self.holdings_dict.keys():
+            Weight_data[each] = Amount_data[each] / Amount_data['Sum']
         
+        Weight_data['Sum'] = Weight_data.sum(axis = 1)
+        
+        Portfolio_EC = (Weight_data * Return_data).sum(axis=1).cumsum().apply(np.exp)
+        Portfolio_EC.name = 'NAV'
+        
+        df = pd.DataFrame()
+        df['NAV'] = Portfolio_EC
+        
+        df['NAV'].plot()
+
+        return df
+    
 
 
 
@@ -131,14 +150,14 @@ class Backtest_Asset_Allocation(object):
         return_list = np.zeros((1,size)) + default_value
         return return_list
 
-    def Component_Correlation(self):
+    def Correlation_matrix(self):
         
         Return_data = self.data.pct_change()
         Correlation_matrix = Return_data.corr()
         
         return Correlation_matrix
 
-    def plot_correlation(self):
+    def Correlation_plot(self):
         
         Correlation_matrix = round(self.Component_Correlation(),2)
         

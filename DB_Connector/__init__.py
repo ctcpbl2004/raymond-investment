@@ -57,7 +57,7 @@ class GetData(object):
         df['AdjClose'] = AdjClose_list
         
         df.sort_index()
-        
+        df.index.name = 'Date'
         return df
 
     @staticmethod

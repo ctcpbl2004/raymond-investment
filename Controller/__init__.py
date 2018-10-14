@@ -25,8 +25,8 @@ class CreateData(object):
         DB_Connector.InsertData.Macro(Ticker,data)
     
     @staticmethod
-    def Create_Data_From_Yahoo_Finance(Ticker):
-        data = API_Connector.Get_Yahoo_Finance_data(Ticker)
+    def Get_Data_From_Yahoo_Finance(Ticker,Start = None):
+        data = API_Connector.Get_Yahoo_Finance_data(Ticker,Start)
         data = data.rename(columns = {'Adj Close':'AdjClose'})
         data.index = data.index.strftime('%Y-%m-%d')
         
@@ -39,13 +39,23 @@ class CreateData(object):
     def Create_From_Yahoo_Finance(Tickers):
         for Ticker in Tickers:
             try:
-                data = CreateData.Create_Data_From_Yahoo_Finance(Ticker)              
+                data = CreateData.Get_Data_From_Yahoo_Finance(Ticker)              
                 DB_Connector.InsertData.Equity(Ticker,data)
                 time.sleep(2)
             except:
                 sys.stderr.write("[Error] Connection error in " + str(Ticker) + '. \n')
                 
-                
+    @staticmethod
+    def Update_From_Yahoo_Finance(Tickers, Start):
+        for Ticker in Tickers:
+
+            try:
+                data = CreateData.Get_Data_From_Yahoo_Finance(Ticker, Start)              
+                DB_Connector.InsertData.Equity(Ticker,data)
+                #time.sleep(2)
+            except:
+                sys.stderr.write("[Error] Connection error in " + str(Ticker) + '. \n')
+         
                 
                 
                 
@@ -96,7 +106,8 @@ class UpdateData(object):
     def Update_Equity_YF(self):
         Equity_list = self.Summary_table[self.Summary_table['Category'] == 'Equity']['Ticker'].tolist()
         
-        CreateData.Create_From_Yahoo_Finance(Equity_list)
+        CreateData.Update_From_Yahoo_Finance(Equity_list,self.Today_Minus_30)
+        Summarize_Data()
         
         
     def Update_FuturesData(self):
