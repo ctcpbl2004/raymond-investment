@@ -67,8 +67,28 @@ class RiskReward_Analyzer(object):
         data.plot.scatter(x = 'Volatility', y = 'Return')
         
         
+def Evaluate_Performance(df):
+    if len(df.columns) == 1:
+        days = df.index[-1] - df.index[0]
+        years = days.days/365.
+        Annual_Return = df[df.columns[0]][-1] ** (1/years) - 1.
+
+        df_pctchg = df.pct_change()
+        Annual_Volatility = np.std(df_pctchg[df_pctchg.columns[0]])*np.sqrt(252)
         
+        Sharpe_Ratio = Annual_Return / Annual_Volatility
         
+        df['New_High'] = df[df.columns[0]].cummax()
+        df['Drawdown'] = df[df.columns[0]] - df['New_High']
+        MaxDrawDown = min(df['Drawdown'])
+        
+        Performance = pd.DataFrame(index = ['Annual Return','Annual Volatility','Sharpe Ratio','Max Drawdown'], columns = ['Custom Portfolio'])
+        Performance['Custom Portfolio'] = [Annual_Return,Annual_Volatility,Sharpe_Ratio,MaxDrawDown]
+        
+        return Performance
+        
+    else:
+        pass        
         
 
     
@@ -132,37 +152,40 @@ class Backtest(object):
         
         df = pd.DataFrame()
         df['NAV'] = Portfolio_EC
+        df['NAV'].plot(legend = True,label = str(self.holdings_dict))
+
         
-        df['NAV'].plot()
+        Weight_df = pd.DataFrame(columns = ['Weight'], index = self.holdings_dict.keys())
+        Weight_df['Weight'] = list(self.holdings_dict.values())
+        
+        print ("=============================")
+        print (Weight_df)
+        print (Evaluate_Performance(df))
+        print ("=============================")
 
         return df
-    
-
-
-
-
-
-
-
-
 
     def _generate_list(self,size,default_value):
         return_list = np.zeros((1,size)) + default_value
         return return_list
 
-    def Correlation_matrix(self):
-        
+
+class Correlation_Anaysis(object):
+    
+    def __init__(self, Tickers, Start, End):
+        self.data = DB_Connector.GetData.Multi_Equity(Tickers, Start)
+    
+    def Matrix(self):
         Return_data = self.data.pct_change()
         Correlation_matrix = Return_data.corr()
         
         return Correlation_matrix
-
-    def Correlation_plot(self):
-        
-        Correlation_matrix = round(self.Component_Correlation(),2)
+    
+    def Matrix_plot(self):
+        Correlation_matrix = round(self.Matrix(),2)
         
         fig, ax = plt.subplots(figsize=(8,6))
-        im = ax.imshow(Correlation_matrix.values, cmap='RdBu')
+        ax.imshow(Correlation_matrix.values, cmap='RdBu')
         
         ax.set_xticks(np.arange(len(Correlation_matrix.columns)))
         ax.set_yticks(np.arange(len(Correlation_matrix.columns)))
@@ -180,6 +203,8 @@ class Backtest(object):
         ax.set_title("Correlation matrix of multiple assets")
         fig.tight_layout()
         plt.show()
+
+
 
 
 

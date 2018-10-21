@@ -10,6 +10,7 @@ import API_Connector
 import Controller
 from Model import PortfolioAnalysis
 from Model import FinancialEngineering
+from View import StockViewer
 
 import fix_yahoo_finance as yf
 import pandas as pd
@@ -22,22 +23,6 @@ import numpy as np
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+app = StockViewer.MainWindow()
 
 

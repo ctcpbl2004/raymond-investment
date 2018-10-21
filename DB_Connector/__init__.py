@@ -61,6 +61,18 @@ class GetData(object):
         return df
 
     @staticmethod
+    def Get_EquityName(Ticker):
+        connection = sqlite3.connect(_db_path)
+        cursor = connection.cursor()
+        
+        cursor.execute("SELECT Name FROM EquityList WHERE Ticker = ?",(Ticker,))
+        data = cursor.fetchall()
+        
+        connection.close()
+        
+        return data[0][0]
+        
+    @staticmethod
     def Multi_Equity(Tickers, Start = None, End = None):
         
         if (Start == None) & (End == None):
@@ -465,6 +477,20 @@ class Metadata(object):
         
         return df
 
+    @staticmethod
+    def Insert_Equity():
+        path = 'metadata/TickerList.xlsx'
+        data = pd.read_excel(path)
+        
+        connection = sqlite3.connect(_db_path)
+        cursor = connection.cursor()
+        
+        for i in range(len(data)):
+            cursor.execute("INSERT INTO EquityList VALUES (?,?,NULL)",(data.ix[i][0],data.ix[i][1]))
+        
+        connection.commit()
+        connection.close()
+        
 
 
 
